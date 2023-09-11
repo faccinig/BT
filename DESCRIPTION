@@ -1,0 +1,18 @@
+Package: BT
+Type: Package
+Title: Backtest trading strategies in R
+Version: 0.0.1
+Authors@R:
+    person("Guilherme", "Faccini",
+      email = "faccini.g@gmail.com",
+      role = c("aut", "cre"))
+Description: Framework to backtest strategies in event-driven way. It uses an 
+    object-oriented programming paradigm.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    glue,
+    R6
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
