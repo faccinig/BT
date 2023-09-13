@@ -1,4 +1,4 @@
-new_order <- function(idx, date_idx, symbol, size, side, type, ...) {
+new_order <- function(order_idx, date_idx, type, side, size, ...) {
   # stopifnot(
   #   "`symbol` must be a character!" = is.character(symbol),
   #   "`symbol` must be a single value!" = length(symbol) == 1L,
@@ -14,10 +14,10 @@ new_order <- function(idx, date_idx, symbol, size, side, type, ...) {
 
   structure(
     list(
-      idx = idx,
+      order_idx = order_idx,
       date_idx = date_idx,
       type = type,
-      symbol = symbol,
+      # symbol = symbol,
       size = size,
       side = side,
       ...
@@ -28,17 +28,13 @@ new_order <- function(idx, date_idx, symbol, size, side, type, ...) {
 
 
 print.order <- function(x, ...) {
-  cat(
-    glue("
+  cat_glue("
   Order:
-    Idx: {x$idx}
-    Symbol: {x$symbol}
+    Order Idx: {x$order_idx}
     Type: {x$type}
     Side: {x$side}
     Size: {x$size}
-         "),
-  "\n"
-  )
+  ")
   invisible(x)
 }
 
