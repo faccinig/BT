@@ -1,10 +1,17 @@
-new_trade <- function(idx, data_idx, symbol, size, side, type, price, trade_cost, order_idx, ...) {
+new_trade <- function(trade_idx,
+                      data_idx,
+                      order_idx,
+                      type,
+                      side,
+                      size,
+                      price,
+                      trade_cost,
+                      ...) {
   structure(
     list(
-      idx = idx,
+      trade_idx = trade_idx,
       data_idx = data_idx,
       order_idx = order_idx,
-      symbol = symbol,
       type = type,
       side = side,
       size = size,
@@ -17,23 +24,20 @@ new_trade <- function(idx, data_idx, symbol, size, side, type, price, trade_cost
 }
 
 print.trade <- function(x, ...) {
-  cat(
-    glue("
+  cat_glue("
   Trade:
-    Idx: {x$idx}
-    Symbol: {x$symbol}
+    Trade Idx: {x$idx}
     Type: {x$type}
     Side: {x$side}
     Size: {x$size}
     Price:{x$price}
-         "),
-  "\n"
+  "
   )
   invisible(x)
 }
 
 # trade <- new_trade(idx = 156L,
-#                  "teste", 100L,
+#                  100L,
 #                  side = BUY,
 #                  type = MARKET,
 #                  price = 12.50)
