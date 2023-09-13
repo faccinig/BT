@@ -23,3 +23,7 @@ check_vector <- function(df, name, is_of_type, type) {
     stop(glue("Column {name} is not of type '{type}'!"))
   }
 }
+
+cat_glue <- function(msg, .envir = parent.frame()) {
+  cat(glue(msg, .envir = .envir), "\n")
+}
