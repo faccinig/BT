@@ -1,6 +1,6 @@
-new_trade <- function(trade_idx,
+new_trade <- function(trade_bar,
                       bar,
-                      order_idx,
+                      order_bar,
                       type,
                       side,
                       size,
@@ -9,9 +9,9 @@ new_trade <- function(trade_idx,
                       ...) {
   structure(
     list(
-      trade_idx = trade_idx,
+      trade_bar = trade_bar,
       bar = bar,
-      order_idx = order_idx,
+      order_bar = order_bar,
       type = type,
       side = side,
       size = size,
@@ -26,7 +26,7 @@ new_trade <- function(trade_idx,
 print.trade <- function(x, ...) {
   cat_glue("
   Trade:
-    Trade Idx: {x$trade_idx}
+    Trade Idx: {x$trade_bar}
     Type: {x$type}
     Side: {x$side}
     Size: {x$size}
