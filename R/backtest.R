@@ -1,20 +1,15 @@
+#' @export
 Backtest <- R6::R6Class(
   "Backtest",
   # public ----
   public = list(
     current_bar = 0L,
-    orders = list(),
-    trades = list(),
     data = NULL,
-    reporter = NULL,
     begin = function(...) {
       stop("`begin` method must be created by user!")
     },
     on_bar = function(current_bar) {
       stop("`on_bar` method must be created by user!")
-    },
-    initialize = function(reporter = Console_reporter()) {
-      self$set_reporter(reporter)
     },
     set_data = function(data) {
       # talvez esta função deva se tornar um active binding
@@ -24,18 +19,6 @@ Backtest <- R6::R6Class(
       check_vector(data, name = "low", is_of_type = is.numeric, type = "numeric")
       check_vector(data, name = "close", is_of_type = is.numeric, type = "numeric")
       self$data <- data
-      invisible(self)
-    },
-    set_reporter = function(reporter) {
-      # testar se é da classe reporter
-      self$reporter <- reporter
-      invisible(self)
-    },
-    set_trade_cost = function(cost_fun) {
-      stopifnot(
-        "`cost_fun` must be a function!" = is.function(cost_fun)
-      )
-      self$trade_cost <- cost_fun
       invisible(self)
     },
     # TODO: método para definir as variáveis:
@@ -71,7 +54,7 @@ Backtest <- R6::R6Class(
         type = MARKET
       )
     },
-    buy_start = function(size = 100L, start_price) {
+    buy_start = function(start_price, size = 100L) {
       private$add_order(
         size = size,
         side = BUY,
@@ -79,7 +62,7 @@ Backtest <- R6::R6Class(
         start_price = start_price
       )
     },
-    sell_start = function(size = 100L, start_price) {
+    sell_start = function(start_price, size = 100L) {
       private$add_order(
         size = -size,
         side = SELL,
@@ -87,7 +70,7 @@ Backtest <- R6::R6Class(
         start_price = start_price
       )
     },
-    buy_stop = function(size = 100L, stop_price) {
+    buy_stop = function(stop_price, size = 100L) {
       private$add_order(
         size = size,
         side = BUY,
@@ -95,13 +78,21 @@ Backtest <- R6::R6Class(
         stop_price = stop_price
       )
     },
-    sell_stop = function(size = 100L, stop_price) {
+    sell_stop = function(stop_price, size = 100L) {
       private$add_order(
         size = -size,
         side = SELL,
         type = STOP,
         stop_price = stop_price
       )
+    },
+    cancel_order = function(order) {
+      private$orders = remove_one(private$orders,
+                                  \(o) o$order_idx == order$order_idx)
+      self
+    },
+    get_orders = function() {
+      private$orders
     },
     last_line = function() {self$data[self$current_idx, ]},
     open = function() {self$data$open[self$current_idx]},
@@ -114,23 +105,24 @@ Backtest <- R6::R6Class(
   private = list(
     order_idx = 0L,
     trade_idx = 0L,
+    orders = NULL,
+    trades = NULL,
     renew = function() {
       private$order_idx <- 0L
       private$trade_idx <- 0L
       self$current_bar <- 0L
-      self$orders <- list()
-      self$trades <- list()
+      private$orders <- list()
+      private$trades <- list()
       self
     },
-    add_order = function(symbol, size, side, type, ...) {
+    add_order = function(size, side, type, ...) {
       order <- new_order(order_idx = private$next_order(),
                          bar = self$current_bar,
-                         symbol = symbol,
                          size = size,
                          side = side,
                          type = type,
                          ...)
-      private$orders <- append(self$orders, list(order))
+      private$orders <- append(private$orders, list(order))
       invisible(self)
     },
     next_trade = function() {
@@ -178,8 +170,8 @@ Backtest <- R6::R6Class(
 
       if (length(new_trades) > 0L) {
         removed_orders <- map_int(new_trades, \(t) t$order_idx)
-        self$orders <- remove(orders, \(o) o$order_idx %in% removed_orders)
-        self$trades <- append(self$trades, new_trades)
+        private$orders <- remove(orders, \(o) o$order_idx %in% removed_orders)
+        private$trades <- append(private$trades, new_trades)
       }
 
       self
