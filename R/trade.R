@@ -27,6 +27,7 @@ print.trade <- function(x, ...) {
   cat_glue("
   Trade:
     Trade Idx: {x$trade_idx}
+    Bar: {x$bar}
     Type: {x$type}
     Side: {x$side}
     Size: {x$size}
