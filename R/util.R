@@ -32,15 +32,15 @@ cat_glue <- function(msg, .envir = parent.frame()) {
   cat(glue(msg, .envir = .envir), "\n")
 }
 
-# remove_one <- function(lst, .p) {
-#   for (i in seq_along(lst)) {
-#     if (.p(lst[[i]])) {
-#       lst <- lst[-i]
-#       return(lst)
-#     }
-#   }
-#   stop("No item was found!")
-# }
+remove_one <- function(lst, .p) {
+  for (i in seq_along(lst)) {
+    if (.p(lst[[i]])) {
+      lst <- lst[-i]
+      return(lst)
+    }
+  }
+  stop("No item was found!")
+}
 
 remove <- function(lst, .p, ...) {
   Reduce(
