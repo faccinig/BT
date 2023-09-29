@@ -25,11 +25,12 @@ new_order <- function(order_idx, bar, type, side, size, ...) {
   )
 }
 
-
+#' @export
 print.order <- function(x, ...) {
   cat_glue("
   Order:
-    Order Bar: {x$order_idx}
+    Order Idx: {x$order_idx}
+    Bar: {x$bar}
     Type: {x$type}
     Side: {x$side}
     Size: {x$size}
@@ -37,10 +38,5 @@ print.order <- function(x, ...) {
   invisible(x)
 }
 
-# order <- new_order(symbol = "EMBR3",
-#                    side = "buy",
-#                    size = 100L,
-#                    type = "market",
-#                    idx = 14L)
 
 
