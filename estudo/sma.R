@@ -26,7 +26,8 @@ SMA_CrossOver <- R6::R6Class(
   )
 )
 
-bt <- SMA_CrossOver$new(reporter = Console_reporter())$
+bt <- SMA_CrossOver$new()$
+  set_broker(Broker$new(initial_capital = 1e5))
   run(n = 21L)
 
 
@@ -58,4 +59,7 @@ DonchianChannelBreakOut <- R6::R6Class(
 )
 
 
-bt <- DonchianChannelBreakOut$new()$run(n = 21)
+bt <- DonchianChannelBreakOut$
+  new()$
+  set_broker(broker = Broker$new(initial_capital = 100000))$
+  run(n = 21)
