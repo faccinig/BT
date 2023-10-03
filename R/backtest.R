@@ -5,6 +5,7 @@ Backtest <- R6::R6Class(
   public = list(
     current_bar = 0L,
     data = NULL,
+    broker = NULL,
     begin = function(...) {
       stop("`begin` method must be created by user!")
     },
@@ -19,15 +20,18 @@ Backtest <- R6::R6Class(
       check_vector(data, name = "low", is_of_type = is.numeric, type = "numeric")
       check_vector(data, name = "close", is_of_type = is.numeric, type = "numeric")
       self$data <- data
-      invisible(self)
+      self
+    },
+    set_broker = function(broker) {
+      self$broker = broker
+      self
     },
     # TODO: método para definir as variáveis:
     #     * begin_at = NULL,
-    #     * end_at = NULL,
-    #     * initial_cash = 100000,
-    #     * from_start = TRUE,
+    #     * end_at = NULL
     run = function(...) {
       private$renew()
+      self$broker$begin()
       self$begin(...)
       # avalia se todos os requisitos para rodar são atendidos
       # Possui:
@@ -62,7 +66,7 @@ Backtest <- R6::R6Class(
         start_price = start_price
       )
     },
-    sell_start = function(start_price, size = 100L) {
+    sell_limit = function(limit_price, size = 100L) {
       private$add_order(
         size = -size,
         side = SELL,
@@ -151,7 +155,8 @@ Backtest <- R6::R6Class(
       last_bar <- nrow(self$data)
       while (private$next_bar() <= last_bar) {
         private$fill_orders()
-        self$on_bar()
+        self$on_bar(self$current_bar)
+        self$broker$on_bar(self$current_bar)
       }
       self
     },
