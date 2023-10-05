@@ -12,6 +12,11 @@ Backtest <- R6::R6Class(
     on_bar = function(current_bar) {
       stop("`on_bar` method must be created by user!")
     },
+    initialize = function(broker = NULL) {
+      if (is.null(broker)) broker <- Broker$new()
+      self$set_broker(broker)
+      self
+    },
     set_data = function(data) {
       # talvez esta função deva se tornar um active binding
       check_vector(data, name = "date", is_of_type = \(x) inherits(x, "Date"), type = "Date")
@@ -23,7 +28,10 @@ Backtest <- R6::R6Class(
       self
     },
     set_broker = function(broker) {
-      self$broker = broker
+      stopifnot(
+        "`broker` must be of `Brocker` class!" = inherits(broker, "Broker")
+      )
+      self$broker <- broker
       self
     },
     # TODO: método para definir as variáveis:
@@ -31,72 +39,78 @@ Backtest <- R6::R6Class(
     #     * end_at = NULL
     run = function(...) {
       private$renew()
-      self$broker$begin()
       self$begin(...)
       # avalia se todos os requisitos para rodar são atendidos
       # Possui:
       #   * data
-      # Se reporter não for definido usar "ReporterSimple"(avaliar somente estatísticas básicas)
-      # iniciar reporter
-      # avança para o primeira data sem NA
+      # identifica primeira barra sem NA
       private$find_initial_bar()
       # roda o backtest
       private$backtest()
       self
     },
-    buy = function(size = 100L) {
+    buy = function(size = 100L, ...) {
       private$add_order(
         size = size,
         side = BUY,
-        type = MARKET
+        type = MARKET,
+        ...
       )
     },
-    sell = function(size = 100L) {
+    sell = function(size = 100L, ...) {
       private$add_order(
         size = -size,
         side = SELL,
-        type = MARKET
+        type = MARKET,
+        ...
       )
     },
-    buy_start = function(start_price, size = 100L) {
+    buy_start = function(start_price, size = 100L, ...) {
       private$add_order(
         size = size,
         side = BUY,
         type = START,
-        start_price = start_price
+        start_price = start_price,
+        ...
       )
     },
-    sell_limit = function(limit_price, size = 100L) {
+    sell_limit = function(limit_price, size = 100L, ...) {
       private$add_order(
         size = -size,
         side = SELL,
         type = START,
-        start_price = start_price
+        start_price = start_price,
+        ...
       )
     },
-    buy_stop = function(stop_price, size = 100L) {
+    buy_stop = function(stop_price, size = 100L, ...) {
       private$add_order(
         size = size,
         side = BUY,
         type = STOP,
-        stop_price = stop_price
+        stop_price = stop_price,
+        ...
       )
     },
-    sell_stop = function(stop_price, size = 100L) {
+    sell_stop = function(stop_price, size = 100L, ...) {
       private$add_order(
         size = -size,
         side = SELL,
         type = STOP,
-        stop_price = stop_price
+        stop_price = stop_price,
+        ...
       )
     },
     cancel_order = function(order) {
-      private$orders = remove_one(private$orders,
-                                  \(o) o$order_idx == order$order_idx)
+      private$orders <- remove_one(private$orders,
+                                   \(o) o$order_idx == order$order_idx)
       self
     },
     get_orders = function() {
       private$orders
+    },
+    get_open_trade = function() {
+      self$broker$open_trade
     },
     last_line = function() {self$data[self$current_idx, ]},
     open = function() {self$data$open[self$current_idx]},
@@ -108,15 +122,15 @@ Backtest <- R6::R6Class(
   # private----
   private = list(
     order_idx = 0L,
-    trade_idx = 0L,
-    orders = NULL,
-    trades = NULL,
+    orders = list(),
     renew = function() {
       private$order_idx <- 0L
-      private$trade_idx <- 0L
       self$current_bar <- 0L
       private$orders <- list()
-      private$trades <- list()
+      if (is.null(self$broker)) {
+        self$broker <- Broker$new()
+      }
+      self$broker$set_bt(self)$renew()
       self
     },
     add_order = function(size, side, type, ...) {
@@ -164,50 +178,17 @@ Backtest <- R6::R6Class(
       orders <- private$orders
       if (length(orders) == 0L) return(self)
 
-      new_trades <- Reduce(function(lst, order) {
-        trade <- self$broker$fill_order(order)
-        if (is.null(trade)) return(lst)
+      private$orders <- Reduce(function(lst, order) {
+        filled <- self$broker$fill_order(order)
+        if (filled) return(lst)
 
-        append(lst, list(trade))
+        append(lst, list(order))
       },
       x = orders,
       init = list())
-
-      if (length(new_trades) > 0L) {
-        removed_orders <- map_int(new_trades, \(t) t$order_idx)
-        private$orders <- remove(orders, \(o) o$order_idx %in% removed_orders)
-        private$trades <- append(private$trades, new_trades)
-      }
 
       self
     }
   )
 )
-
-
-# Fill order -------------------------------------------------------------------
-# Não vai funcionar como desejado - o R6 só usa as funções definidas no pacote
-# não podendo ser substituidas pelo usuário
-
-fill_order <- function(ord, bt) {
-  UseMethod("make_trade")
-}
-
-fill_order.market <- function(order, bt) {
-  line <- bt$last_line()
-  # Para market order o preço de exercício será o preço de abertura
-  # TODO: avaliar método mais realista
-  price <- line$open
-  new_trade(
-    idx = bt$next_trade(),
-    data_idx = bt$current_idx,
-    order_idx = order$idx,
-    symbol = order$symbol,
-    type = order$type,
-    side = order$side,
-    size = order$size,
-    price = price,
-    trade_cost = bt$trade_cost(order = order, price = price)
-  )
-}
 
