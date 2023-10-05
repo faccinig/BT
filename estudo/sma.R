@@ -10,6 +10,7 @@ SMA_CrossOver <- R6::R6Class(
         mutate(sma = TTR::SMA(close, n = n)) |>
         mutate(buySignal = crossover(close, sma)) |>
         mutate(sellSignal = crossover(sma, close))
+
       self
     },
     on_bar = function(idx) {
@@ -26,8 +27,7 @@ SMA_CrossOver <- R6::R6Class(
   )
 )
 
-bt <- SMA_CrossOver$new()$
-  set_broker(Broker$new(initial_capital = 1e5))
+bt <- SMA_CrossOver$new(broker = Broker$new(cash = 1e6))$
   run(n = 21L)
 
 
@@ -44,6 +44,7 @@ DonchianChannelBreakOut <- R6::R6Class(
         mutate(atr = TTR::ATR(.[,c("high", "low", "close")], n = ATR_n)) |>
         mutate(stop_loss = low - atr * xstop) |>
         mutate(buySignal = crossover(close, suport))
+      self$stop <- NA_real_
       self
     },
     on_bar = function(idx) {
@@ -61,5 +62,4 @@ DonchianChannelBreakOut <- R6::R6Class(
 
 bt <- DonchianChannelBreakOut$
   new()$
-  set_broker(broker = Broker$new(initial_capital = 100000))$
   run(n = 21)
