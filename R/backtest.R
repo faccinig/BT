@@ -127,10 +127,7 @@ Backtest <- R6::R6Class(
       private$order_idx <- 0L
       self$current_bar <- 0L
       private$orders <- list()
-      if (is.null(self$broker)) {
-        self$broker <- Broker$new()
-      }
-      self$broker$set_bt(self)$renew()
+      self$broker$renew()
       self
     },
     add_order = function(size, side, type, ...) {
