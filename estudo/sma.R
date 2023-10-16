@@ -13,13 +13,13 @@ SMA_CrossOver <- R6::R6Class(
 
       self
     },
-    on_bar = function(idx) {
+    on_bar = function(current_bar) {
       if (self$broker$position == 0L) {
-        if (self$data$buySignal[idx]) {
+        if (self$data$buySignal[current_bar]) {
           self$buy(100L)
         }
       } else {
-        if (self$data$sellSignal[idx]) {
+        if (self$data$sellSignal[current_bar]) {
           self$sell(100L)
         }
       }
@@ -47,12 +47,12 @@ DonchianChannelBreakOut <- R6::R6Class(
       self$stop <- NA_real_
       self
     },
-    on_bar = function(idx) {
+    on_bar = function(current_bar) {
       if (self$broker$position == 0L) {
-        self$buy_start(100L, start_price = self$data$suport[idx])
+        self$buy_start(100L, start_price = self$data$suport[current_bar])
         self$stop <- NA_real_
       } else {
-        self$stop <- max(self$stop, self$data$stop_loss[idx], na.rm = TRUE)
+        self$stop <- max(self$stop, self$data$stop_loss[current_bar], na.rm = TRUE)
         self$sell_stop(100L, stop_price = self$stop)
       }
     }
