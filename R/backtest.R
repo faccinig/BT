@@ -31,7 +31,7 @@ Backtest <- R6::R6Class(
       stopifnot(
         "`broker` must be of `Brocker` class!" = inherits(broker, "Broker")
       )
-      self$broker <- broker
+      self$broker <- broker$set_bt(self)
       self
     },
     # TODO: método para definir as variáveis:
